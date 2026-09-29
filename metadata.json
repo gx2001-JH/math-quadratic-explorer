@@ -1,0 +1,6 @@
+{
+  "name": "이차함수 그래프 계산기",
+  "description": "이차함수 y = ax² + bx + c 의 계수를 슬라이더로 조절하고 꼭짓점, 축의 방정식, 판별식, x/y 절편을 실시간으로 확인하는 대화형 그래프 시각화 도구",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

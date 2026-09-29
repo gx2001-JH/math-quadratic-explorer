@@ -1,0 +1,1546 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>3학년 이차함수 탐구실 - y = ax² + bx + c</title>
+  <meta name="description" content="이차함수 y = ax² + bx + c 의 계수를 슬라이더로 조절하고 꼭짓점, 축의 방정식, 판별식, x/y 절편을 실시간으로 확인하는 대화형 그래프 시각화 도구" />
+  <meta property="og:title" content="3학년 이차함수 탐구실" />
+  <meta property="og:description" content="이차함수 y = ax² + bx + c 그래프 실시간 시각화 도구" />
+  <meta property="og:type" content="website" />
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#eef2ff',
+              100: '#e0e7ff',
+              500: '#6366f1',
+              600: '#4f46e5',
+              700: '#4338ca',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- KaTeX for Beautiful Math Formula Rendering -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" />
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+
+  <style>
+    @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+    
+    * {
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, 'Helvetica Neue', 'Segoe UI', 'Apple SD Gothic Neo', 'Malgun Gothic', 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', sans-serif;
+    }
+
+    /* Custom range slider styling */
+    input[type=range] {
+      -webkit-appearance: none;
+      appearance: none;
+      background: transparent;
+      cursor: pointer;
+    }
+    input[type=range]:focus {
+      outline: none;
+    }
+    input[type=range]::-webkit-slider-runnable-track {
+      height: 8px;
+      border-radius: 9999px;
+      background: #e2e8f0;
+    }
+    .dark input[type=range]::-webkit-slider-runnable-track {
+      background: #334155;
+    }
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      height: 22px;
+      width: 22px;
+      border-radius: 50%;
+      background: #4f46e5;
+      margin-top: -7px;
+      box-shadow: 0 2px 6px rgba(79, 70, 229, 0.4);
+      border: 2px solid #ffffff;
+      transition: transform 0.1s ease, background-color 0.1s ease;
+    }
+    input[type=range]:active::-webkit-slider-thumb {
+      transform: scale(1.15);
+      background: #4338ca;
+    }
+
+    /* Track dynamic styling */
+    .slider-a::-webkit-slider-thumb { background: #3b82f6; box-shadow: 0 2px 6px rgba(59, 130, 246, 0.5); }
+    .slider-b::-webkit-slider-thumb { background: #10b981; box-shadow: 0 2px 6px rgba(16, 185, 129, 0.5); }
+    .slider-c::-webkit-slider-thumb { background: #f59e0b; box-shadow: 0 2px 6px rgba(245, 158, 11, 0.5); }
+
+    /* Canvas cursor styles */
+    #graphCanvas {
+      cursor: crosshair;
+      touch-action: none;
+    }
+    #graphCanvas.grabbing {
+      cursor: grabbing;
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 4px;
+    }
+    .dark ::-webkit-scrollbar-thumb {
+      background: #475569;
+    }
+  </style>
+</head>
+<body class="bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 min-h-screen flex flex-col selection:bg-indigo-500 selection:text-white transition-colors duration-200">
+
+  <!-- 상단 네비게이션 헤더 -->
+  <header class="bg-white/90 dark:bg-slate-900/90 backdrop-blur border-b border-slate-200 dark:border-slate-800 sticky top-0 z-30 px-4 lg:px-8 py-3.5 transition-colors">
+    <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-blue-500 flex items-center justify-center text-white shadow-md shadow-indigo-500/20">
+          <svg class="w-6 h-6 stroke-[2.2]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3 18c4.5-9 9-9 18 0" />
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3 12h18M12 3v18" opacity="0.35"/>
+          </svg>
+        </div>
+        <div>
+          <h1 class="text-lg md:text-xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
+            3학년 이차함수 탐구실
+            <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-950/80 text-indigo-700 dark:text-indigo-300 border border-indigo-200/60 dark:border-indigo-800/60">y = ax² + bx + c</span>
+          </h1>
+          <p class="text-xs text-slate-500 dark:text-slate-400 hidden sm:block">계수를 슬라이더로 조절하며 포물선의 기하학적 성질을 실시간으로 확인해보세요</p>
+        </div>
+      </div>
+
+      <!-- 우측 보조 컨트롤 -->
+      <div class="flex items-center gap-2">
+        <button id="themeToggleBtn" title="다크 모드 전환" class="p-2 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition border border-slate-200 dark:border-slate-700">
+          <i data-lucide="moon" class="w-4 h-4 hidden dark:block"></i>
+          <i data-lucide="sun" class="w-4 h-4 block dark:hidden"></i>
+        </button>
+        <button id="captureBtn" title="그래프 이미지 저장" class="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-lg bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 transition shadow-sm">
+          <i data-lucide="download" class="w-4 h-4"></i>
+          <span class="hidden sm:inline">이미지 저장</span>
+        </button>
+        <button id="resetDefaultsBtn" title="초기값으로 재설정" class="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-lg bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-950/60 dark:hover:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 transition">
+          <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+          <span>초기화</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- 메인 레이아웃 (좌측 제어 & 분석 패널 / 우측 캔버스 그래프) -->
+  <main class="max-w-7xl mx-auto w-full p-4 lg:p-6 flex-1 flex flex-col lg:flex-row gap-6">
+
+    <!-- 좌측 패널: 수식, 슬라이더 조절기, 분석 카드, 프리셋 -->
+    <div class="w-full lg:w-[460px] xl:w-[490px] flex flex-col gap-5 flex-shrink-0">
+
+      <!-- 수식 표시 카드 -->
+      <div class="bg-white dark:bg-slate-900 rounded-2xl p-5 border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden">
+        <div class="absolute -right-8 -top-8 w-28 h-28 bg-indigo-500/10 rounded-full blur-2xl pointer-events-none"></div>
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">현재 이차함수 수식</span>
+          <span id="shapeBadge" class="text-xs font-semibold px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-950 text-blue-600 dark:text-blue-300 border border-blue-200 dark:border-blue-900">
+            아래로 볼록
+          </span>
+        </div>
+        
+        <!-- 일반형 수식 (KaTeX) -->
+        <div class="py-2 px-3 bg-slate-50 dark:bg-slate-950/60 rounded-xl border border-slate-200/80 dark:border-slate-800/80 text-center mb-3 min-h-[52px] flex items-center justify-center overflow-x-auto">
+          <div id="equationStandard" class="text-xl md:text-2xl font-bold text-slate-900 dark:text-white">
+            y = x^2
+          </div>
+        </div>
+
+        <!-- 표준형(꼭짓점형) 수식 (KaTeX) -->
+        <div class="flex items-center justify-between text-xs px-2 text-slate-600 dark:text-slate-400">
+          <span class="font-medium text-slate-500 dark:text-slate-400">표준형 (꼭짓점형):</span>
+          <div id="equationVertexForm" class="font-semibold text-slate-800 dark:text-slate-200">
+            y = (x - 0)^2 + 0
+          </div>
+        </div>
+      </div>
+
+      <!-- 계수 슬라이더 조절 섹션 -->
+      <div class="bg-white dark:bg-slate-900 rounded-2xl p-5 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
+        <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+          <h2 class="font-bold text-slate-800 dark:text-slate-200 text-sm flex items-center gap-2">
+            <i data-lucide="sliders" class="w-4 h-4 text-indigo-500"></i>
+            계수 실시간 조절
+          </h2>
+          <div class="flex items-center gap-2">
+            <button id="animToggleBtn" class="flex items-center gap-1 text-xs px-2.5 py-1 rounded-md bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-medium transition">
+              <i data-lucide="play" class="w-3.5 h-3.5 text-indigo-500" id="animIcon"></i>
+              <span id="animText">변화 애니메이션</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- a 계수 조절 -->
+        <div class="space-y-1.5 p-3 rounded-xl bg-blue-50/50 dark:bg-blue-950/20 border border-blue-100 dark:border-blue-900/40">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="w-6 h-6 rounded-lg bg-blue-600 text-white font-bold text-xs flex items-center justify-center shadow-sm">a</span>
+              <span class="text-xs font-semibold text-slate-700 dark:text-slate-300">이차항 계수</span>
+              <span class="text-[11px] text-slate-400 hidden sm:inline">(볼록 방향 및 폭)</span>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <button class="step-btn w-6 h-6 rounded bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 text-xs font-bold" data-target="sliderA" data-delta="-0.1">-</button>
+              <input type="number" id="numA" step="0.1" min="-10" max="10" value="1" class="w-16 text-center text-xs font-bold py-1 rounded bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-blue-600 dark:text-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-500" />
+              <button class="step-btn w-6 h-6 rounded bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 text-xs font-bold" data-target="sliderA" data-delta="0.1">+</button>
+            </div>
+          </div>
+          <input type="range" id="sliderA" min="-6" max="6" step="0.1" value="1" class="w-full slider-a" />
+          <div class="flex justify-between text-[10px] text-slate-400">
+            <span>-6 (위로 좁게)</span>
+            <span class="text-blue-500 font-semibold cursor-pointer" onclick="setSlider('sliderA', 1)">기본 (1)</span>
+            <span>+6 (아래로 좁게)</span>
+          </div>
+        </div>
+
+        <!-- b 계수 조절 -->
+        <div class="space-y-1.5 p-3 rounded-xl bg-emerald-50/50 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900/40">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="w-6 h-6 rounded-lg bg-emerald-600 text-white font-bold text-xs flex items-center justify-center shadow-sm">b</span>
+              <span class="text-xs font-semibold text-slate-700 dark:text-slate-300">일차항 계수</span>
+              <span class="text-[11px] text-slate-400 hidden sm:inline">(대칭축 위치)</span>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <button class="step-btn w-6 h-6 rounded bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 text-xs font-bold" data-target="sliderB" data-delta="-0.1">-</button>
+              <input type="number" id="numB" step="0.1" min="-20" max="20" value="0" class="w-16 text-center text-xs font-bold py-1 rounded bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-emerald-600 dark:text-emerald-400 focus:outline-none focus:ring-1 focus:ring-emerald-500" />
+              <button class="step-btn w-6 h-6 rounded bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 text-xs font-bold" data-target="sliderB" data-delta="0.1">+</button>
+            </div>
+          </div>
+          <input type="range" id="sliderB" min="-10" max="10" step="0.1" value="0" class="w-full slider-b" />
+          <div class="flex justify-between text-[10px] text-slate-400">
+            <span>-10 (대칭축 우측)</span>
+            <span class="text-emerald-500 font-semibold cursor-pointer" onclick="setSlider('sliderB', 0)">0 (축=y축)</span>
+            <span>+10 (대칭축 좌측)</span>
+          </div>
+        </div>
+
+        <!-- c 계수 조절 -->
+        <div class="space-y-1.5 p-3 rounded-xl bg-amber-50/50 dark:bg-amber-950/20 border border-amber-100 dark:border-amber-900/40">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="w-6 h-6 rounded-lg bg-amber-500 text-white font-bold text-xs flex items-center justify-center shadow-sm">c</span>
+              <span class="text-xs font-semibold text-slate-700 dark:text-slate-300">상수항</span>
+              <span class="text-[11px] text-slate-400 hidden sm:inline">(y절편, 상하 평행이동)</span>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <button class="step-btn w-6 h-6 rounded bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 text-xs font-bold" data-target="sliderC" data-delta="-0.1">-</button>
+              <input type="number" id="numC" step="0.1" min="-20" max="20" value="0" class="w-16 text-center text-xs font-bold py-1 rounded bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-amber-600 dark:text-amber-400 focus:outline-none focus:ring-1 focus:ring-amber-500" />
+              <button class="step-btn w-6 h-6 rounded bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 text-xs font-bold" data-target="sliderC" data-delta="0.1">+</button>
+            </div>
+          </div>
+          <input type="range" id="sliderC" min="-10" max="10" step="0.1" value="0" class="w-full slider-c" />
+          <div class="flex justify-between text-[10px] text-slate-400">
+            <span>-10 (아래로 이동)</span>
+            <span class="text-amber-500 font-semibold cursor-pointer" onclick="setSlider('sliderC', 0)">0 (원점 지남)</span>
+            <span>+10 (위로 이동)</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 기하학적 성질 실시간 분석 카드 그리드 -->
+      <div class="bg-white dark:bg-slate-900 rounded-2xl p-5 border border-slate-200 dark:border-slate-800 shadow-sm space-y-3">
+        <h2 class="font-bold text-slate-800 dark:text-slate-200 text-sm flex items-center justify-between">
+          <span class="flex items-center gap-2">
+            <i data-lucide="compass" class="w-4 h-4 text-indigo-500"></i>
+            핵심 성질 분석
+          </span>
+          <span class="text-[11px] text-slate-400 font-normal">실시간 계산</span>
+        </h2>
+
+        <div class="grid grid-cols-2 gap-2.5 text-xs">
+          <!-- 꼭짓점 -->
+          <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/70 dark:border-slate-700/60">
+            <div class="flex items-center gap-1.5 text-slate-500 dark:text-slate-400 mb-1">
+              <span class="w-2 h-2 rounded-full bg-purple-500"></span>
+              <span class="font-medium">꼭짓점 (Vertex)</span>
+            </div>
+            <div id="propVertex" class="font-bold text-sm text-purple-600 dark:text-purple-400 truncate">
+              (0, 0)
+            </div>
+            <div class="text-[10px] text-slate-400 mt-0.5" id="propVertexDesc">
+              x = -b/(2a)
+            </div>
+          </div>
+
+          <!-- 대칭축 -->
+          <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/70 dark:border-slate-700/60">
+            <div class="flex items-center gap-1.5 text-slate-500 dark:text-slate-400 mb-1">
+              <span class="w-2 h-2 rounded-full bg-indigo-500"></span>
+              <span class="font-medium">축의 방정식</span>
+            </div>
+            <div id="propAxis" class="font-bold text-sm text-indigo-600 dark:text-indigo-400 truncate">
+              x = 0
+            </div>
+            <div class="text-[10px] text-slate-400 mt-0.5">
+              포물선의 좌우 대칭축
+            </div>
+          </div>
+
+          <!-- 판별식 D -->
+          <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/70 dark:border-slate-700/60">
+            <div class="flex items-center gap-1.5 text-slate-500 dark:text-slate-400 mb-1">
+              <span class="w-2 h-2 rounded-full bg-rose-500"></span>
+              <span class="font-medium">판별식 D (b² - 4ac)</span>
+            </div>
+            <div id="propD" class="font-bold text-sm text-rose-600 dark:text-rose-400 truncate">
+              D = 0
+            </div>
+            <div id="propDRoots" class="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5 font-medium truncate">
+              중근 (접함)
+            </div>
+          </div>
+
+          <!-- 최댓값 / 최솟값 -->
+          <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/70 dark:border-slate-700/60">
+            <div class="flex items-center gap-1.5 text-slate-500 dark:text-slate-400 mb-1">
+              <span class="w-2 h-2 rounded-full bg-teal-500"></span>
+              <span class="font-medium">최댓값 / 최솟값</span>
+            </div>
+            <div id="propExtremum" class="font-bold text-sm text-teal-600 dark:text-teal-400 truncate">
+              최솟값 0
+            </div>
+            <div id="propExtremumDesc" class="text-[10px] text-slate-400 mt-0.5 truncate">
+              x = 0 일 때
+            </div>
+          </div>
+
+          <!-- x절편 -->
+          <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/70 dark:border-slate-700/60 col-span-2">
+            <div class="flex items-center justify-between mb-1">
+              <div class="flex items-center gap-1.5 text-slate-500 dark:text-slate-400">
+                <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                <span class="font-medium">x절편 (x축과의 교점)</span>
+              </div>
+              <span class="text-[10px] text-slate-400">y = 0 일 때</span>
+            </div>
+            <div id="propXIntercept" class="font-bold text-sm text-emerald-600 dark:text-emerald-400">
+              (0, 0)
+            </div>
+          </div>
+
+          <!-- y절편 -->
+          <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/70 dark:border-slate-700/60 col-span-2">
+            <div class="flex items-center justify-between mb-1">
+              <div class="flex items-center gap-1.5 text-slate-500 dark:text-slate-400">
+                <span class="w-2 h-2 rounded-full bg-amber-500"></span>
+                <span class="font-medium">y절편 (y축과의 교점)</span>
+              </div>
+              <span class="text-[10px] text-slate-400">x = 0 일 때 (0, c)</span>
+            </div>
+            <div id="propYIntercept" class="font-bold text-sm text-amber-600 dark:text-amber-400">
+              (0, 0)
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 대표 예제 프리셋 버튼 -->
+      <div class="bg-white dark:bg-slate-900 rounded-2xl p-5 border border-slate-200 dark:border-slate-800 shadow-sm space-y-3">
+        <h2 class="font-bold text-slate-800 dark:text-slate-200 text-sm flex items-center gap-2">
+          <i data-lucide="sparkles" class="w-4 h-4 text-indigo-500"></i>
+          대표 예제 프리셋
+        </h2>
+        <div class="grid grid-cols-2 gap-2 text-xs">
+          <button class="preset-btn p-2 rounded-lg bg-slate-50 hover:bg-indigo-50 dark:bg-slate-800 dark:hover:bg-indigo-950/50 border border-slate-200 dark:border-slate-700 text-left transition" data-a="1" data-b="0" data-c="0">
+            <div class="font-semibold text-slate-800 dark:text-slate-200">기본 포물선</div>
+            <div class="text-[11px] text-slate-500 dark:text-slate-400">y = x²</div>
+          </button>
+          <button class="preset-btn p-2 rounded-lg bg-slate-50 hover:bg-indigo-50 dark:bg-slate-800 dark:hover:bg-indigo-950/50 border border-slate-200 dark:border-slate-700 text-left transition" data-a="-1" data-b="0" data-c="4">
+            <div class="font-semibold text-slate-800 dark:text-slate-200">위로 볼록</div>
+            <div class="text-[11px] text-slate-500 dark:text-slate-400">y = -x² + 4</div>
+          </button>
+          <button class="preset-btn p-2 rounded-lg bg-slate-50 hover:bg-indigo-50 dark:bg-slate-800 dark:hover:bg-indigo-950/50 border border-slate-200 dark:border-slate-700 text-left transition" data-a="1" data-b="-4" data-c="4">
+            <div class="font-semibold text-slate-800 dark:text-slate-200">중근 (x축 접함)</div>
+            <div class="text-[11px] text-slate-500 dark:text-slate-400">y = (x - 2)²</div>
+          </button>
+          <button class="preset-btn p-2 rounded-lg bg-slate-50 hover:bg-indigo-50 dark:bg-slate-800 dark:hover:bg-indigo-950/50 border border-slate-200 dark:border-slate-700 text-left transition" data-a="1" data-b="-2" data-c="-3">
+            <div class="font-semibold text-slate-800 dark:text-slate-200">서로 다른 두 실근</div>
+            <div class="text-[11px] text-slate-500 dark:text-slate-400">x = -1, 3 교점</div>
+          </button>
+          <button class="preset-btn p-2 rounded-lg bg-slate-50 hover:bg-indigo-50 dark:bg-slate-800 dark:hover:bg-indigo-950/50 border border-slate-200 dark:border-slate-700 text-left transition" data-a="1" data-b="2" data-c="3">
+            <div class="font-semibold text-slate-800 dark:text-slate-200">허근 (만나지 않음)</div>
+            <div class="text-[11px] text-slate-500 dark:text-slate-400">D &lt; 0 (붕 뜸)</div>
+          </button>
+          <button class="preset-btn p-2 rounded-lg bg-slate-50 hover:bg-indigo-50 dark:bg-slate-800 dark:hover:bg-indigo-950/50 border border-slate-200 dark:border-slate-700 text-left transition" data-a="0.5" data-b="-2" data-c="0">
+            <div class="font-semibold text-slate-800 dark:text-slate-200">원점 지나는 완만한 곡선</div>
+            <div class="text-[11px] text-slate-500 dark:text-slate-400">y = 0.5x² - 2x</div>
+          </button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- 우측 패널: 그래프 캔버스 및 뷰포트 조작 도구 -->
+    <div class="flex-1 flex flex-col gap-3 min-h-[500px]">
+
+      <!-- 그래프 상단 툴바 & 표시 옵션 -->
+      <div class="bg-white dark:bg-slate-900 rounded-2xl p-3.5 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-wrap items-center justify-between gap-3 text-xs">
+        
+        <!-- 표시 요소 토글 체크박스들 -->
+        <div class="flex flex-wrap items-center gap-3">
+          <label class="inline-flex items-center gap-1.5 cursor-pointer text-slate-700 dark:text-slate-300">
+            <input type="checkbox" id="showVertex" checked class="rounded text-purple-600 focus:ring-purple-500 w-3.5 h-3.5" />
+            <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-purple-500"></span>꼭짓점</span>
+          </label>
+          <label class="inline-flex items-center gap-1.5 cursor-pointer text-slate-700 dark:text-slate-300">
+            <input type="checkbox" id="showAxis" checked class="rounded text-indigo-600 focus:ring-indigo-500 w-3.5 h-3.5" />
+            <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-indigo-500"></span>대칭축</span>
+          </label>
+          <label class="inline-flex items-center gap-1.5 cursor-pointer text-slate-700 dark:text-slate-300">
+            <input type="checkbox" id="showRoots" checked class="rounded text-emerald-600 focus:ring-emerald-500 w-3.5 h-3.5" />
+            <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-emerald-500"></span>x절편</span>
+          </label>
+          <label class="inline-flex items-center gap-1.5 cursor-pointer text-slate-700 dark:text-slate-300">
+            <input type="checkbox" id="showYIntercept" checked class="rounded text-amber-500 focus:ring-amber-500 w-3.5 h-3.5" />
+            <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-amber-500"></span>y절편</span>
+          </label>
+          <label class="inline-flex items-center gap-1.5 cursor-pointer text-slate-700 dark:text-slate-300">
+            <input type="checkbox" id="showTrace" checked class="rounded text-blue-600 focus:ring-blue-500 w-3.5 h-3.5" />
+            <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-blue-500"></span>마우스 탐색 점</span>
+          </label>
+        </div>
+
+        <!-- 줌 및 시점 리셋 버튼 -->
+        <div class="flex items-center gap-1.5 ml-auto">
+          <span id="scaleLabel" class="text-[11px] font-mono px-2 py-1 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">1칸 = 1</span>
+          <button id="zoomInBtn" title="확대" class="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 transition">
+            <i data-lucide="zoom-in" class="w-4 h-4"></i>
+          </button>
+          <button id="zoomOutBtn" title="축소" class="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 transition">
+            <i data-lucide="zoom-out" class="w-4 h-4"></i>
+          </button>
+          <button id="centerOriginBtn" title="원점으로 시점 이동" class="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 font-medium transition">
+            <i data-lucide="locate-fixed" class="w-3.5 h-3.5"></i>
+            <span>원점 맞춤</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- 캔버스 영역 컨테이너 -->
+      <div class="flex-1 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden flex flex-col">
+        
+        <!-- 실시간 마우스 좌표 및 안내 플로팅 오버레이 -->
+        <div class="absolute top-3 left-3 z-10 pointer-events-none flex flex-col gap-1.5">
+          <div id="hoverInfoBox" class="hidden px-2.5 py-1 rounded-lg bg-slate-900/85 dark:bg-slate-800/90 text-white backdrop-blur text-xs font-mono shadow-md border border-slate-700/50">
+            x: <span id="hoverX" class="text-blue-300">0.00</span>, y: <span id="hoverY" class="text-emerald-300">0.00</span>
+          </div>
+          <div class="text-[11px] text-slate-400 bg-white/70 dark:bg-slate-900/70 backdrop-blur px-2 py-0.5 rounded-md border border-slate-200/50 dark:border-slate-800/50">
+            💡 드래그하여 화면 이동 | 휠 스크롤로 확대/축소
+          </div>
+        </div>
+
+        <!-- 캔버스 엘리먼트 -->
+        <div class="relative w-full h-full min-h-[520px] flex-1">
+          <canvas id="graphCanvas" class="absolute inset-0 w-full h-full"></canvas>
+        </div>
+
+        <!-- 캔버스 하단 범례 안내 바 -->
+        <div class="px-4 py-2 border-t border-slate-100 dark:border-slate-800/80 bg-slate-50/70 dark:bg-slate-950/40 flex flex-wrap items-center justify-between text-[11px] text-slate-500 dark:text-slate-400 gap-2">
+          <div class="flex items-center gap-4">
+            <span class="flex items-center gap-1.5"><span class="w-3 h-0.5 bg-indigo-600 rounded"></span>포물선 y = ax² + bx + c</span>
+            <span class="flex items-center gap-1.5"><span class="w-3 h-0.5 border-t border-dashed border-indigo-500"></span>대칭축</span>
+            <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-purple-500 ring-2 ring-purple-200 dark:ring-purple-900"></span>꼭짓점</span>
+            <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-emerald-500"></span>x절편</span>
+            <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-amber-500"></span>y절편</span>
+          </div>
+          <div class="text-slate-400">
+            X축: [-∞, +∞], Y축: [-∞, +∞]
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- 화면 맨 아래: 학생용 탐구 질문 3개 -->
+  <section class="max-w-7xl mx-auto w-full px-4 lg:px-6 pb-8">
+    <div class="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm">
+      <div class="flex items-center justify-between mb-4">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-lg bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-bold">
+            <i data-lucide="help-circle" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h3 class="font-bold text-base text-slate-900 dark:text-white flex items-center gap-2">
+              📝 학생용 탐구 질문
+            </h3>
+            <p class="text-xs text-slate-500 dark:text-slate-400">위 그래프의 슬라이더를 직접 움직여보며 아래 3가지 질문의 규칙을 찾아보세요!</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <!-- 탐구 질문 1 -->
+        <div class="p-4 rounded-xl bg-blue-50/60 dark:bg-blue-950/20 border border-blue-100 dark:border-blue-900/40 flex flex-col justify-between">
+          <div>
+            <div class="flex items-center gap-2 mb-2">
+              <span class="w-6 h-6 rounded-full bg-blue-600 text-white font-bold text-xs flex items-center justify-center">1</span>
+              <span class="text-xs font-bold text-blue-700 dark:text-blue-300">탐구 질문 1 (계수 a의 역할)</span>
+            </div>
+            <p class="text-sm font-semibold text-slate-800 dark:text-slate-200 mb-2 leading-relaxed">
+              "a의 부호를 바꾸면 그래프는 어떻게 될까? 또 |a|의 크기가 커지면 포물선의 폭은 어떻게 변할까?"
+            </p>
+          </div>
+          <div class="mt-3 pt-2.5 border-t border-blue-200/50 dark:border-blue-900/50 text-xs text-slate-600 dark:text-slate-400">
+            <span class="font-semibold text-blue-600 dark:text-blue-400">💡 힌트:</span> a &gt; 0일 때와 a &lt; 0일 때 볼록한 방향을 살피고, a = 0.5와 a = 3일 때의 폭을 비교해보세요.
+          </div>
+        </div>
+
+        <!-- 탐구 질문 2 -->
+        <div class="p-4 rounded-xl bg-emerald-50/60 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900/40 flex flex-col justify-between">
+          <div>
+            <div class="flex items-center gap-2 mb-2">
+              <span class="w-6 h-6 rounded-full bg-emerald-600 text-white font-bold text-xs flex items-center justify-center">2</span>
+              <span class="text-xs font-bold text-emerald-700 dark:text-emerald-300">탐구 질문 2 (계수 b와 대칭축)</span>
+            </div>
+            <p class="text-sm font-semibold text-slate-800 dark:text-slate-200 mb-2 leading-relaxed">
+              "b의 값을 양수(+) 또는 음수(-)로 바꾸면 대칭축과 꼭짓점의 위치는 어느 쪽으로 움직일까?"
+            </p>
+          </div>
+          <div class="mt-3 pt-2.5 border-t border-emerald-200/50 dark:border-emerald-900/50 text-xs text-slate-600 dark:text-slate-400">
+            <span class="font-semibold text-emerald-600 dark:text-emerald-400">💡 힌트:</span> 대칭축의 공식 x = -b/(2a)를 떠올려보고, a와 b의 부호가 같을 때와 다를 때 축의 위치를 관찰해보세요.
+          </div>
+        </div>
+
+        <!-- 탐구 질문 3 -->
+        <div class="p-4 rounded-xl bg-amber-50/60 dark:bg-amber-950/20 border border-amber-100 dark:border-amber-900/40 flex flex-col justify-between">
+          <div>
+            <div class="flex items-center gap-2 mb-2">
+              <span class="w-6 h-6 rounded-full bg-amber-500 text-white font-bold text-xs flex items-center justify-center">3</span>
+              <span class="text-xs font-bold text-amber-700 dark:text-amber-300">탐구 질문 3 (상수항 c와 y절편)</span>
+            </div>
+            <p class="text-sm font-semibold text-slate-800 dark:text-slate-200 mb-2 leading-relaxed">
+              "c의 값만 바꾸면 그래프의 형태는 유지되면서 어떻게 이동하고, y축과 만나는 점(y절편)은 어디일까?"
+            </p>
+          </div>
+          <div class="mt-3 pt-2.5 border-t border-amber-200/50 dark:border-amber-900/50 text-xs text-slate-600 dark:text-slate-400">
+            <span class="font-semibold text-amber-600 dark:text-amber-400">💡 힌트:</span> c를 변경할 때 그래프가 상하로 평행이동하는 모습과 항상 점 (0, c)를 지남을 확인해보세요.
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 메인 스크립트 (모든 로직 포함) -->
+  <script>
+    // --- 상태 관리 ---
+    const state = {
+      a: 1.0,
+      b: 0.0,
+      c: 0.0,
+      
+      // 뷰포트 (카르테시안 좌표계)
+      centerX: 0, // 화면 중심이 가리키는 수학적 x좌표
+      centerY: 0, // 화면 중심이 가리키는 수학적 y좌표
+      pixelsPerUnit: 40, // 1단위당 픽셀 수 (기본 40px)
+      minPixelsPerUnit: 10,
+      maxPixelsPerUnit: 200,
+
+      // 인터랙션 상태
+      isDragging: false,
+      dragStartX: 0,
+      dragStartY: 0,
+      initialCenterX: 0,
+      initialCenterY: 0,
+
+      // 마우스 호버 위치 (수학적 좌표)
+      hoverX: null,
+      hoverY: null,
+      mouseOnCanvas: false,
+
+      // 시각화 옵션
+      showVertex: true,
+      showAxis: true,
+      showRoots: true,
+      showYIntercept: true,
+      showTrace: true,
+
+      // 애니메이션
+      animating: false,
+      animTarget: 'a', // 'a' 계수 변화
+      animDirection: 1,
+      animId: null
+    };
+
+    // DOM 요소 캐싱
+    const canvas = document.getElementById('graphCanvas');
+    const ctx = canvas.getContext('2d');
+
+    const sliderA = document.getElementById('sliderA');
+    const sliderB = document.getElementById('sliderB');
+    const sliderC = document.getElementById('sliderC');
+    const numA = document.getElementById('numA');
+    const numB = document.getElementById('numB');
+    const numC = document.getElementById('numC');
+
+    const eqStd = document.getElementById('equationStandard');
+    const eqVertex = document.getElementById('equationVertexForm');
+    const shapeBadge = document.getElementById('shapeBadge');
+
+    const propVertex = document.getElementById('propVertex');
+    const propVertexDesc = document.getElementById('propVertexDesc');
+    const propAxis = document.getElementById('propAxis');
+    const propD = document.getElementById('propD');
+    const propDRoots = document.getElementById('propDRoots');
+    const propExtremum = document.getElementById('propExtremum');
+    const propExtremumDesc = document.getElementById('propExtremumDesc');
+    const propXIntercept = document.getElementById('propXIntercept');
+    const propYIntercept = document.getElementById('propYIntercept');
+
+    const hoverInfoBox = document.getElementById('hoverInfoBox');
+    const hoverXEl = document.getElementById('hoverX');
+    const hoverYEl = document.getElementById('hoverY');
+    const scaleLabel = document.getElementById('scaleLabel');
+
+    // --- 수식 서식 포맷 함수 (한국어 및 KaTeX 텍스트) ---
+    function formatStandardEquation(a, b, c) {
+      if (a === 0 && b === 0 && c === 0) return 'y = 0';
+      
+      let res = 'y = ';
+      let terms = [];
+
+      // a*x^2
+      if (a !== 0) {
+        if (a === 1) terms.push('x^2');
+        else if (a === -1) terms.push('-x^2');
+        else terms.push(`${a}x^2`);
+      }
+
+      // b*x
+      if (b !== 0) {
+        if (terms.length === 0) {
+          if (b === 1) terms.push('x');
+          else if (b === -1) terms.push('-x');
+          else terms.push(`${b}x`);
+        } else {
+          if (b > 0) {
+            if (b === 1) terms.push('+ x');
+            else terms.push(`+ ${b}x`);
+          } else {
+            if (b === -1) terms.push(`- x`);
+            else terms.push(`- ${Math.abs(b)}x`);
+          }
+        }
+      }
+
+      // c
+      if (c !== 0) {
+        if (terms.length === 0) {
+          terms.push(`${c}`);
+        } else {
+          if (c > 0) terms.push(`+ ${c}`);
+          else terms.push(`- ${Math.abs(c)}`);
+        }
+      }
+
+      if (terms.length === 0) terms.push('0');
+      return res + terms.join(' ');
+    }
+
+    function formatVertexEquation(a, p, q) {
+      if (a === 0) {
+        return `y = ${formatNumber(state.b)}x ${state.c >= 0 ? '+ ' + formatNumber(state.c) : '- ' + formatNumber(Math.abs(state.c))}`;
+      }
+
+      let res = 'y = ';
+      if (a === -1) res += '-';
+      else if (a !== 1) res += `${formatNumber(a)}`;
+
+      if (Math.abs(p) < 0.0001) {
+        res += 'x^2';
+      } else if (p > 0) {
+        res += `(x - ${formatNumber(p)})^2`;
+      } else {
+        res += `(x + ${formatNumber(Math.abs(p))})^2`;
+      }
+
+      if (Math.abs(q) > 0.0001) {
+        if (q > 0) res += ` + ${formatNumber(q)}`;
+        else res += ` - ${formatNumber(Math.abs(q))}`;
+      }
+
+      return res;
+    }
+
+    function formatNumber(val, decimals = 2) {
+      if (Number.isInteger(val)) return val.toString();
+      const fixed = val.toFixed(decimals);
+      return parseFloat(fixed).toString(); // 끝자리 0 제거
+    }
+
+    // --- 수식 및 성질 업데이트 ---
+    function updateCalculations() {
+      const a = state.a;
+      const b = state.b;
+      const c = state.c;
+
+      // 1. 일반형 수식 KaTeX 렌더링
+      const stdFormula = formatStandardEquation(a, b, c);
+      if (window.katex) {
+        katex.render(stdFormula, eqStd, { throwOnError: false, displayMode: true });
+      } else {
+        eqStd.textContent = stdFormula;
+      }
+
+      // 볼록성 뱃지
+      if (a > 0) {
+        shapeBadge.textContent = '아래로 볼록 (∪)';
+        shapeBadge.className = 'text-xs font-semibold px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-950 text-blue-600 dark:text-blue-300 border border-blue-200 dark:border-blue-900';
+      } else if (a < 0) {
+        shapeBadge.textContent = '위로 볼록 (∩)';
+        shapeBadge.className = 'text-xs font-semibold px-2 py-0.5 rounded-full bg-rose-50 dark:bg-rose-950 text-rose-600 dark:text-rose-300 border border-rose-200 dark:border-rose-900';
+      } else {
+        shapeBadge.textContent = '직선 (a=0)';
+        shapeBadge.className = 'text-xs font-semibold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-700';
+      }
+
+      // 2. 꼭짓점 & 대칭축 & 최댓/최솟값
+      if (a !== 0) {
+        const p = -b / (2 * a);
+        const q = c - (b * b) / (4 * a);
+
+        // 꼭짓점
+        propVertex.textContent = `(${formatNumber(p)}, ${formatNumber(q)})`;
+        propVertexDesc.textContent = `p = -b/(2a), q = f(p)`;
+
+        // 표준형 수식
+        const vForm = formatVertexEquation(a, p, q);
+        if (window.katex) {
+          katex.render(vForm, eqVertex, { throwOnError: false });
+        } else {
+          eqVertex.textContent = vForm;
+        }
+
+        // 축의 방정식
+        propAxis.textContent = `x = ${formatNumber(p)}`;
+
+        // 최댓값/최솟값
+        if (a > 0) {
+          propExtremum.textContent = `최솟값 ${formatNumber(q)}`;
+          propExtremumDesc.textContent = `x = ${formatNumber(p)} 일 때`;
+        } else {
+          propExtremum.textContent = `최댓값 ${formatNumber(q)}`;
+          propExtremumDesc.textContent = `x = ${formatNumber(p)} 일 때`;
+        }
+
+        // 3. 판별식 D = b^2 - 4ac
+        const D = b * b - 4 * a * c;
+        propD.textContent = `D = ${formatNumber(D)}`;
+        
+        if (D > 0.000001) {
+          propDRoots.textContent = '서로 다른 두 실근 (x축과 2개 점)';
+          propDRoots.className = 'text-[10px] text-emerald-600 dark:text-emerald-400 mt-0.5 font-semibold truncate';
+
+          const r1 = (-b - Math.sqrt(D)) / (2 * a);
+          const r2 = (-b + Math.sqrt(D)) / (2 * a);
+          const smaller = Math.min(r1, r2);
+          const larger = Math.max(r1, r2);
+          propXIntercept.textContent = `(${formatNumber(smaller)}, 0), (${formatNumber(larger)}, 0)`;
+        } else if (Math.abs(D) <= 0.000001) {
+          propDRoots.textContent = '중근 (x축에 꼭짓점이 접함)';
+          propDRoots.className = 'text-[10px] text-amber-600 dark:text-amber-400 mt-0.5 font-semibold truncate';
+          propXIntercept.textContent = `(${formatNumber(p)}, 0)`;
+        } else {
+          propDRoots.textContent = '서로 다른 두 허근 (x축과 만나지 않음)';
+          propDRoots.className = 'text-[10px] text-rose-500 dark:text-rose-400 mt-0.5 font-semibold truncate';
+          propXIntercept.textContent = '실근 없음 (교점 없음)';
+        }
+
+      } else {
+        // a = 0 일 때 (일차함수 또는 상수함수)
+        propVertex.textContent = '해당 없음 (직선)';
+        propVertexDesc.textContent = '이차함수가 아닙니다';
+        eqVertex.textContent = `y = ${formatNumber(b)}x + ${formatNumber(c)}`;
+        propAxis.textContent = '해당 없음';
+        propD.textContent = '해당 없음 (a=0)';
+        propDRoots.textContent = '직선 방정식';
+        propDRoots.className = 'text-[10px] text-slate-400 mt-0.5 truncate';
+        propExtremum.textContent = b === 0 ? `모든 점에서 ${formatNumber(c)}` : '없음 (실수 전체)';
+        propExtremumDesc.textContent = '';
+
+        if (b !== 0) {
+          const root = -c / b;
+          propXIntercept.textContent = `(${formatNumber(root)}, 0)`;
+        } else {
+          propXIntercept.textContent = c === 0 ? '모든 실수 x (x축 일치)' : '없음 (평행한 직선)';
+        }
+      }
+
+      // y절편
+      propYIntercept.textContent = `(0, ${formatNumber(c)})`;
+    }
+
+    // --- 캔버스 렌더링 시스템 ---
+    function resizeCanvas() {
+      const rect = canvas.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      
+      const width = rect.width;
+      const height = rect.height;
+
+      if (canvas.width !== width * dpr || canvas.height !== height * dpr) {
+        canvas.width = width * dpr;
+        canvas.height = height * dpr;
+        ctx.scale(dpr, dpr);
+      }
+
+      drawGraph();
+    }
+
+    // 좌표 변환: 수학적 (x, y) -> 캔버스 픽셀 (px, py)
+    function mathToPixel(mx, my) {
+      const rect = canvas.getBoundingClientRect();
+      const originPxX = rect.width / 2 - state.centerX * state.pixelsPerUnit;
+      const originPxY = rect.height / 2 + state.centerY * state.pixelsPerUnit;
+
+      const px = originPxX + mx * state.pixelsPerUnit;
+      const py = originPxY - my * state.pixelsPerUnit; // y축 반전
+      return { x: px, y: py };
+    }
+
+    // 좌표 변환: 캔버스 픽셀 (px, py) -> 수학적 (mx, my)
+    function pixelToMath(px, py) {
+      const rect = canvas.getBoundingClientRect();
+      const originPxX = rect.width / 2 - state.centerX * state.pixelsPerUnit;
+      const originPxY = rect.height / 2 + state.centerY * state.pixelsPerUnit;
+
+      const mx = (px - originPxX) / state.pixelsPerUnit;
+      const my = (originPxY - py) / state.pixelsPerUnit;
+      return { x: mx, y: my };
+    }
+
+    // 적응형 격자 스텝 계산 (1, 2, 5 단위로 자연스럽게 분할)
+    function calculateGridStep(pixelsPerUnit) {
+      const targetPixelDistance = 70; // 약 70px마다 주 눈금선
+      const rawStep = targetPixelDistance / pixelsPerUnit;
+      
+      const magnitude = Math.pow(10, Math.floor(Math.log10(rawStep)));
+      const normalized = rawStep / magnitude;
+
+      let step;
+      if (normalized < 1.5) step = 1 * magnitude;
+      else if (normalized < 3.5) step = 2 * magnitude;
+      else if (normalized < 7.5) step = 5 * magnitude;
+      else step = 10 * magnitude;
+
+      return step;
+    }
+
+    function drawGraph() {
+      const rect = canvas.getBoundingClientRect();
+      const width = rect.width;
+      const height = rect.height;
+
+      const isDark = document.documentElement.classList.contains('dark');
+
+      // 캔버스 클리어
+      ctx.clearRect(0, 0, width, height);
+
+      // 배경 색상
+      ctx.fillStyle = isDark ? '#0f172a' : '#ffffff';
+      ctx.fillRect(0, 0, width, height);
+
+      // 격자 및 축 계산
+      const gridStep = calculateGridStep(state.pixelsPerUnit);
+      scaleLabel.textContent = `1칸 = ${formatNumber(gridStep)}`;
+
+      const topLeftMath = pixelToMath(0, 0);
+      const bottomRightMath = pixelToMath(width, height);
+
+      const minMathX = topLeftMath.x;
+      const maxMathX = bottomRightMath.x;
+      const minMathY = bottomRightMath.y;
+      const maxMathY = topLeftMath.y;
+
+      const originPx = mathToPixel(0, 0);
+
+      // --- 1. 격자선 (Grid Lines) 그리기 ---
+      // 보조 눈금선 (더 연함)
+      const subStep = gridStep / 5;
+      if (state.pixelsPerUnit * subStep > 8) {
+        ctx.lineWidth = 0.5;
+        ctx.strokeStyle = isDark ? '#1e293b' : '#f1f5f9';
+        ctx.beginPath();
+        
+        const firstSubX = Math.floor(minMathX / subStep) * subStep;
+        for (let x = firstSubX; x <= maxMathX; x += subStep) {
+          const px = mathToPixel(x, 0).x;
+          ctx.moveTo(px, 0);
+          ctx.lineTo(px, height);
+        }
+
+        const firstSubY = Math.floor(minMathY / subStep) * subStep;
+        for (let y = firstSubY; y <= maxMathY; y += subStep) {
+          const py = mathToPixel(0, y).y;
+          ctx.moveTo(0, py);
+          ctx.lineTo(width, py);
+        }
+        ctx.stroke();
+      }
+
+      // 주 눈금선 (Major Grid)
+      ctx.lineWidth = 1;
+      ctx.strokeStyle = isDark ? '#334155' : '#e2e8f0';
+      ctx.beginPath();
+
+      const firstGridX = Math.floor(minMathX / gridStep) * gridStep;
+      for (let x = firstGridX; x <= maxMathX; x += gridStep) {
+        const px = mathToPixel(x, 0).x;
+        ctx.moveTo(px, 0);
+        ctx.lineTo(px, height);
+      }
+
+      const firstGridY = Math.floor(minMathY / gridStep) * gridStep;
+      for (let y = firstGridY; y <= maxMathY; y += gridStep) {
+        const py = mathToPixel(0, y).y;
+        ctx.moveTo(0, py);
+        ctx.lineTo(width, py);
+      }
+      ctx.stroke();
+
+      // --- 2. X축과 Y축 및 화살표, 눈금 숫자 ---
+      ctx.lineWidth = 1.75;
+      ctx.strokeStyle = isDark ? '#94a3b8' : '#475569';
+      ctx.beginPath();
+
+      // X축 (수평선)
+      const xAxisY = Math.max(15, Math.min(height - 15, originPx.y));
+      ctx.moveTo(0, originPx.y);
+      ctx.lineTo(width, originPx.y);
+
+      // Y축 (수직선)
+      const yAxisX = Math.max(15, Math.min(width - 15, originPx.x));
+      ctx.moveTo(originPx.x, 0);
+      ctx.lineTo(originPx.x, height);
+      ctx.stroke();
+
+      // 축 화살표 그리기
+      // X축 화살표
+      if (originPx.y >= 0 && originPx.y <= height) {
+        ctx.fillStyle = isDark ? '#94a3b8' : '#475569';
+        ctx.beginPath();
+        ctx.moveTo(width - 2, originPx.y);
+        ctx.lineTo(width - 10, originPx.y - 4);
+        ctx.lineTo(width - 10, originPx.y + 4);
+        ctx.closePath();
+        ctx.fill();
+
+        // X 라벨
+        ctx.font = 'bold 12px Pretendard, sans-serif';
+        ctx.fillText('x', width - 16, originPx.y - 8);
+      }
+
+      // Y축 화살표
+      if (originPx.x >= 0 && originPx.x <= width) {
+        ctx.fillStyle = isDark ? '#94a3b8' : '#475569';
+        ctx.beginPath();
+        ctx.moveTo(originPx.x, 2);
+        ctx.lineTo(originPx.x - 4, 10);
+        ctx.lineTo(originPx.x + 4, 10);
+        ctx.closePath();
+        ctx.fill();
+
+        // Y 라벨
+        ctx.font = 'bold 12px Pretendard, sans-serif';
+        ctx.fillText('y', originPx.x + 8, 16);
+      }
+
+      // 눈금 숫자 표시
+      ctx.font = '10px Pretendard, monospace';
+      ctx.fillStyle = isDark ? '#64748b' : '#94a3b8';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'top';
+
+      // X축 눈금 숫자
+      for (let x = firstGridX; x <= maxMathX; x += gridStep) {
+        if (Math.abs(x) < 0.0001) continue; // 원점은 따로 처리
+        const px = mathToPixel(x, 0).x;
+        if (px < 20 || px > width - 20) continue;
+        
+        let labelY = originPx.y + 5;
+        if (labelY > height - 18) labelY = height - 18;
+        if (labelY < 4) labelY = 4;
+
+        ctx.fillText(formatNumber(x), px, labelY);
+
+        // 짧은 틱 마크
+        ctx.beginPath();
+        ctx.moveTo(px, originPx.y - 3);
+        ctx.lineTo(px, originPx.y + 3);
+        ctx.stroke();
+      }
+
+      // Y축 눈금 숫자
+      ctx.textAlign = 'right';
+      ctx.textBaseline = 'middle';
+      for (let y = firstGridY; y <= maxMathY; y += gridStep) {
+        if (Math.abs(y) < 0.0001) continue;
+        const py = mathToPixel(0, y).y;
+        if (py < 20 || py > height - 20) continue;
+
+        let labelX = originPx.x - 6;
+        if (labelX < 30) {
+          ctx.textAlign = 'left';
+          labelX = originPx.x + 6;
+        } else {
+          ctx.textAlign = 'right';
+        }
+
+        ctx.fillText(formatNumber(y), labelX, py);
+
+        // 짧은 틱 마크
+        ctx.beginPath();
+        ctx.moveTo(originPx.x - 3, py);
+        ctx.lineTo(originPx.x + 3, py);
+        ctx.stroke();
+      }
+
+      // 원점 'O' 표시
+      if (originPx.x >= 0 && originPx.x <= width && originPx.y >= 0 && originPx.y <= height) {
+        ctx.textAlign = 'right';
+        ctx.textBaseline = 'top';
+        ctx.fillText('O', originPx.x - 4, originPx.y + 4);
+      }
+
+      const a = state.a;
+      const b = state.b;
+      const c = state.c;
+
+      // --- 3. 대칭축 점선 그리기 (showAxis 옵션) ---
+      if (state.showAxis && a !== 0) {
+        const p = -b / (2 * a);
+        const axisPx = mathToPixel(p, 0).x;
+
+        if (axisPx >= -50 && axisPx <= width + 50) {
+          ctx.save();
+          ctx.setLineDash([5, 4]);
+          ctx.strokeStyle = '#6366f1';
+          ctx.lineWidth = 1.5;
+          ctx.beginPath();
+          ctx.moveTo(axisPx, 0);
+          ctx.lineTo(axisPx, height);
+          ctx.stroke();
+          ctx.restore();
+
+          // 대칭축 레이블 배지
+          drawBadge(axisPx, 24, `축: x = ${formatNumber(p)}`, '#6366f1');
+        }
+      }
+
+      // --- 4. 포물선 곡선 y = ax² + bx + c 그리기 ---
+      ctx.save();
+      ctx.beginPath();
+
+      const pixelStep = 1.5; // 서브픽셀 정밀도로 부드럽게 렌더링
+      let firstPoint = true;
+
+      for (let px = -20; px <= width + 20; px += pixelStep) {
+        const mx = pixelToMath(px, 0).x;
+        const my = a * mx * mx + b * mx + c;
+        const py = mathToPixel(0, my).y;
+
+        // 클리핑 방지: 너무 멀리 벗어난 값 제어
+        const clampedPy = Math.max(-500, Math.min(height + 500, py));
+
+        if (firstPoint) {
+          ctx.moveTo(px, clampedPy);
+          firstPoint = false;
+        } else {
+          ctx.lineTo(px, clampedPy);
+        }
+      }
+
+      // 포물선 선 스타일 (그라데이션 또는 뚜렷한 인디고 블루)
+      ctx.lineWidth = 3.2;
+      ctx.strokeStyle = isDark ? '#818cf8' : '#4f46e5';
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.shadowColor = isDark ? 'rgba(129, 140, 248, 0.4)' : 'rgba(79, 70, 229, 0.25)';
+      ctx.shadowBlur = 6;
+      ctx.stroke();
+      ctx.restore();
+
+      // --- 5. 주요 점 하이라이트 ---
+
+      // 5-1. 꼭짓점 (Vertex)
+      if (state.showVertex && a !== 0) {
+        const p = -b / (2 * a);
+        const q = c - (b * b) / (4 * a);
+        const vPos = mathToPixel(p, q);
+
+        if (vPos.x >= -50 && vPos.x <= width + 50 && vPos.y >= -50 && vPos.y <= height + 50) {
+          drawPoint(vPos.x, vPos.y, '#a855f7', 6);
+          drawBadge(vPos.x, vPos.y - 18, `꼭짓점 (${formatNumber(p)}, ${formatNumber(q)})`, '#a855f7');
+        }
+      }
+
+      // 5-2. x절편 (Roots)
+      if (state.showRoots && a !== 0) {
+        const D = b * b - 4 * a * c;
+        if (D > 0.000001) {
+          const r1 = (-b - Math.sqrt(D)) / (2 * a);
+          const r2 = (-b + Math.sqrt(D)) / (2 * a);
+
+          [r1, r2].forEach(r => {
+            const rootPos = mathToPixel(r, 0);
+            if (rootPos.x >= -50 && rootPos.x <= width + 50) {
+              drawPoint(rootPos.x, rootPos.y, '#10b981', 5);
+              drawBadge(rootPos.x, rootPos.y + 18, `(${formatNumber(r)}, 0)`, '#10b981');
+            }
+          });
+        }
+      }
+
+      // 5-3. y절편 (0, c)
+      if (state.showYIntercept) {
+        const yPos = mathToPixel(0, c);
+        if (yPos.x >= -50 && yPos.x <= width + 50 && yPos.y >= -50 && yPos.y <= height + 50) {
+          // 꼭짓점과 겹치지 않는 경우에 주로 강조
+          drawPoint(yPos.x, yPos.y, '#f59e0b', 5);
+          drawBadge(yPos.x + 14, yPos.y - 10, `y절편 (0, ${formatNumber(c)})`, '#f59e0b', 'left');
+        }
+      }
+
+      // --- 6. 마우스 추적점 및 접선 (Trace Tool) ---
+      if (state.showTrace && state.mouseOnCanvas && state.hoverX !== null) {
+        const hx = state.hoverX;
+        const hy = a * hx * hx + b * hx + c;
+        const hPos = mathToPixel(hx, hy);
+
+        // 점선 가이드라인 (x축 및 y축까지의 거리)
+        ctx.save();
+        ctx.setLineDash([3, 3]);
+        ctx.strokeStyle = isDark ? '#64748b' : '#94a3b8';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        // 점 -> X축
+        ctx.moveTo(hPos.x, hPos.y);
+        ctx.lineTo(hPos.x, originPx.y);
+        // 점 -> Y축
+        ctx.moveTo(hPos.x, hPos.y);
+        ctx.lineTo(originPx.x, hPos.y);
+        ctx.stroke();
+
+        // 접선(Tangent Line) 그리기: 기울기 m = 2ax + b
+        const slope = 2 * a * hx + b;
+        const dx = 1.8; // 좌우 x 범위
+        const t1 = mathToPixel(hx - dx, hy - slope * dx);
+        const t2 = mathToPixel(hx + dx, hy + slope * dx);
+        ctx.setLineDash([]);
+        ctx.strokeStyle = 'rgba(59, 130, 246, 0.45)';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(t1.x, t1.y);
+        ctx.lineTo(t2.x, t2.y);
+        ctx.stroke();
+        ctx.restore();
+
+        // 추적점 원 그리기
+        drawPoint(hPos.x, hPos.y, '#3b82f6', 6.5, '#ffffff');
+
+        // 말풍선 배지
+        drawBadge(hPos.x, hPos.y - 22, `(${formatNumber(hx)}, ${formatNumber(hy)}) | 기울기: ${formatNumber(slope)}`, '#3b82f6');
+      }
+    }
+
+    // 보조 함수: 점 그리기
+    function drawPoint(px, py, color, radius = 5, ringColor = '#ffffff') {
+      ctx.save();
+      // 외부 링
+      ctx.beginPath();
+      ctx.arc(px, py, radius + 2, 0, Math.PI * 2);
+      ctx.fillStyle = ringColor;
+      ctx.shadowColor = 'rgba(0,0,0,0.18)';
+      ctx.shadowBlur = 4;
+      ctx.fill();
+
+      // 내부 점
+      ctx.beginPath();
+      ctx.arc(px, py, radius, 0, Math.PI * 2);
+      ctx.fillStyle = color;
+      ctx.fill();
+      ctx.restore();
+    }
+
+    // 보조 함수: 깔끔한 배지 라벨 그리기
+    function drawBadge(px, py, text, bgColor, align = 'center') {
+      ctx.save();
+      ctx.font = 'bold 11px Pretendard, sans-serif';
+      const textMetrics = ctx.measureText(text);
+      const textWidth = textMetrics.width;
+      const paddingX = 8;
+      const height = 20;
+      const radius = 6;
+
+      let x = px - textWidth / 2 - paddingX;
+      if (align === 'left') x = px + 4;
+      const y = py - height / 2;
+
+      // 둥근 사각형 배경
+      ctx.beginPath();
+      ctx.roundRect(x, y, textWidth + paddingX * 2, height, radius);
+      ctx.fillStyle = bgColor;
+      ctx.shadowColor = 'rgba(0,0,0,0.2)';
+      ctx.shadowBlur = 4;
+      ctx.shadowOffsetY = 1;
+      ctx.fill();
+
+      // 텍스트
+      ctx.fillStyle = '#ffffff';
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(text, x + paddingX, y + height / 2);
+      ctx.restore();
+    }
+
+    // --- 이벤트 핸들러 설정 ---
+
+    // 슬라이더 및 숫자 입력 양방향 동기화
+    function bindInput(slider, numInput, stateKey) {
+      const update = (val) => {
+        const num = parseFloat(val);
+        if (!isNaN(num)) {
+          state[stateKey] = num;
+          slider.value = num;
+          numInput.value = num;
+          updateCalculations();
+          drawGraph();
+        }
+      };
+
+      slider.addEventListener('input', (e) => update(e.target.value));
+      numInput.addEventListener('input', (e) => update(e.target.value));
+      numInput.addEventListener('change', (e) => update(e.target.value));
+    }
+
+    bindInput(sliderA, numA, 'a');
+    bindInput(sliderB, numB, 'b');
+    bindInput(sliderC, numC, 'c');
+
+    window.setSlider = function(sliderId, val) {
+      const slider = document.getElementById(sliderId);
+      if (slider) {
+        slider.value = val;
+        slider.dispatchEvent(new Event('input'));
+      }
+    };
+
+    // 스텝 버튼 (+/- 0.1)
+    document.querySelectorAll('.step-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const targetId = btn.getAttribute('data-target');
+        const delta = parseFloat(btn.getAttribute('data-delta'));
+        const slider = document.getElementById(targetId);
+        if (slider) {
+          const newVal = Math.round((parseFloat(slider.value) + delta) * 10) / 10;
+          slider.value = newVal;
+          slider.dispatchEvent(new Event('input'));
+        }
+      });
+    });
+
+    // 프리셋 버튼
+    document.querySelectorAll('.preset-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const a = parseFloat(btn.getAttribute('data-a'));
+        const b = parseFloat(btn.getAttribute('data-b'));
+        const c = parseFloat(btn.getAttribute('data-c'));
+        
+        sliderA.value = a;
+        sliderB.value = b;
+        sliderC.value = c;
+
+        sliderA.dispatchEvent(new Event('input'));
+        sliderB.dispatchEvent(new Event('input'));
+        sliderC.dispatchEvent(new Event('input'));
+
+        // 원점으로 중심 맞추기
+        state.centerX = 0;
+        state.centerY = 0;
+        drawGraph();
+      });
+    });
+
+    // 토글 체크박스들
+    ['showVertex', 'showAxis', 'showRoots', 'showYIntercept', 'showTrace'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) {
+        el.addEventListener('change', (e) => {
+          state[id] = e.target.checked;
+          drawGraph();
+        });
+      }
+    });
+
+    // 캔버스 드래그 (Pan) 및 줌 (Zoom)
+    canvas.addEventListener('mousedown', (e) => {
+      state.isDragging = true;
+      state.dragStartX = e.clientX;
+      state.dragStartY = e.clientY;
+      state.initialCenterX = state.centerX;
+      state.initialCenterY = state.centerY;
+      canvas.classList.add('grabbing');
+    });
+
+    window.addEventListener('mousemove', (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const mouseX = e.clientX - rect.left;
+      const mouseY = e.clientY - rect.top;
+
+      if (state.isDragging) {
+        const deltaX = (e.clientX - state.dragStartX) / state.pixelsPerUnit;
+        const deltaY = (e.clientY - state.dragStartY) / state.pixelsPerUnit;
+        
+        state.centerX = state.initialCenterX - deltaX;
+        state.centerY = state.initialCenterY + deltaY;
+        drawGraph();
+      }
+
+      // 캔버스 내부 마우스 탐색 좌표
+      if (mouseX >= 0 && mouseX <= rect.width && mouseY >= 0 && mouseY <= rect.height) {
+        state.mouseOnCanvas = true;
+        const mathCoord = pixelToMath(mouseX, mouseY);
+        state.hoverX = Math.round(mathCoord.x * 50) / 50; // 0.02 단위 스냅
+        state.hoverY = state.a * state.hoverX * state.hoverX + state.b * state.hoverX + state.c;
+
+        hoverInfoBox.classList.remove('hidden');
+        hoverXEl.textContent = formatNumber(state.hoverX);
+        hoverYEl.textContent = formatNumber(state.hoverY);
+
+        if (!state.isDragging) {
+          drawGraph();
+        }
+      } else {
+        if (state.mouseOnCanvas) {
+          state.mouseOnCanvas = false;
+          hoverInfoBox.classList.add('hidden');
+          drawGraph();
+        }
+      }
+    });
+
+    window.addEventListener('mouseup', () => {
+      if (state.isDragging) {
+        state.isDragging = false;
+        canvas.classList.remove('grabbing');
+      }
+    });
+
+    // 휠 줌 (마우스 포인터 중심 줌)
+    canvas.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      const rect = canvas.getBoundingClientRect();
+      const mouseX = e.clientX - rect.left;
+      const mouseY = e.clientY - rect.top;
+
+      // 줌 전 마우스 위치의 수학적 좌표
+      const mathBefore = pixelToMath(mouseX, mouseY);
+
+      const zoomFactor = e.deltaY < 0 ? 1.15 : 0.87;
+      const newScale = Math.max(state.minPixelsPerUnit, Math.min(state.maxPixelsPerUnit, state.pixelsPerUnit * zoomFactor));
+
+      if (newScale !== state.pixelsPerUnit) {
+        state.pixelsPerUnit = newScale;
+
+        // 마우스 포인트가 동일한 수학적 좌표를 유지하도록 centerX, centerY 보정
+        const mathAfter = pixelToMath(mouseX, mouseY);
+        state.centerX += (mathBefore.x - mathAfter.x);
+        state.centerY += (mathBefore.y - mathAfter.y);
+
+        drawGraph();
+      }
+    }, { passive: false });
+
+    // 줌 인/아웃 버튼
+    document.getElementById('zoomInBtn').addEventListener('click', () => {
+      state.pixelsPerUnit = Math.min(state.maxPixelsPerUnit, state.pixelsPerUnit * 1.25);
+      drawGraph();
+    });
+
+    document.getElementById('zoomOutBtn').addEventListener('click', () => {
+      state.pixelsPerUnit = Math.max(state.minPixelsPerUnit, state.pixelsPerUnit * 0.8);
+      drawGraph();
+    });
+
+    // 원점 맞춤 버튼
+    document.getElementById('centerOriginBtn').addEventListener('click', () => {
+      state.centerX = 0;
+      state.centerY = 0;
+      state.pixelsPerUnit = 40;
+      drawGraph();
+    });
+
+    // 터치 인터랙션 (모바일 지원)
+    let initialTouchDist = null;
+    let touchStartX = 0;
+    let touchStartY = 0;
+
+    canvas.addEventListener('touchstart', (e) => {
+      if (e.touches.length === 1) {
+        state.isDragging = true;
+        touchStartX = e.touches[0].clientX;
+        touchStartY = e.touches[0].clientY;
+        state.initialCenterX = state.centerX;
+        state.initialCenterY = state.centerY;
+      } else if (e.touches.length === 2) {
+        state.isDragging = false;
+        initialTouchDist = Math.hypot(
+          e.touches[0].clientX - e.touches[1].clientX,
+          e.touches[0].clientY - e.touches[1].clientY
+        );
+      }
+    }, { passive: true });
+
+    canvas.addEventListener('touchmove', (e) => {
+      if (e.touches.length === 1 && state.isDragging) {
+        const deltaX = (e.touches[0].clientX - touchStartX) / state.pixelsPerUnit;
+        const deltaY = (e.touches[0].clientY - touchStartY) / state.pixelsPerUnit;
+        state.centerX = state.initialCenterX - deltaX;
+        state.centerY = state.initialCenterY + deltaY;
+        drawGraph();
+      } else if (e.touches.length === 2 && initialTouchDist) {
+        const currentDist = Math.hypot(
+          e.touches[0].clientX - e.touches[1].clientX,
+          e.touches[0].clientY - e.touches[1].clientY
+        );
+        const factor = currentDist / initialTouchDist;
+        state.pixelsPerUnit = Math.max(state.minPixelsPerUnit, Math.min(state.maxPixelsPerUnit, state.pixelsPerUnit * (factor > 1 ? 1.05 : 0.95)));
+        initialTouchDist = currentDist;
+        drawGraph();
+      }
+    }, { passive: true });
+
+    canvas.addEventListener('touchend', () => {
+      state.isDragging = false;
+      initialTouchDist = null;
+    });
+
+    // 애니메이션 모드 (계수 자동 변화 체험)
+    const animToggleBtn = document.getElementById('animToggleBtn');
+    const animIcon = document.getElementById('animIcon');
+    const animText = document.getElementById('animText');
+
+    animToggleBtn.addEventListener('click', () => {
+      state.animating = !state.animating;
+      if (state.animating) {
+        animText.textContent = '애니메이션 정지';
+        animToggleBtn.classList.add('bg-indigo-100', 'text-indigo-700', 'dark:bg-indigo-900/60');
+        runAnimation();
+      } else {
+        animText.textContent = '변화 애니메이션';
+        animToggleBtn.classList.remove('bg-indigo-100', 'text-indigo-700', 'dark:bg-indigo-900/60');
+        cancelAnimationFrame(state.animId);
+      }
+    });
+
+    function runAnimation() {
+      if (!state.animating) return;
+
+      let nextA = state.a + 0.04 * state.animDirection;
+      if (nextA > 4) {
+        nextA = 4;
+        state.animDirection = -1;
+      } else if (nextA < -4) {
+        nextA = -4;
+        state.animDirection = 1;
+      } else if (Math.abs(nextA) < 0.08) {
+        // 0 근처에서 너무 오래 머물지 않도록 살짝 스킵
+        nextA += 0.08 * state.animDirection;
+      }
+
+      state.a = Math.round(nextA * 100) / 100;
+      sliderA.value = state.a;
+      numA.value = state.a;
+      updateCalculations();
+      drawGraph();
+
+      state.animId = requestAnimationFrame(runAnimation);
+    }
+
+    // 전체 초기화 버튼
+    document.getElementById('resetDefaultsBtn').addEventListener('click', () => {
+      state.a = 1.0;
+      state.b = 0.0;
+      state.c = 0.0;
+      state.centerX = 0;
+      state.centerY = 0;
+      state.pixelsPerUnit = 40;
+      
+      sliderA.value = 1;
+      sliderB.value = 0;
+      sliderC.value = 0;
+      numA.value = 1;
+      numB.value = 0;
+      numC.value = 0;
+
+      if (state.animating) {
+        state.animating = false;
+        animText.textContent = '변화 애니메이션';
+        cancelAnimationFrame(state.animId);
+      }
+
+      updateCalculations();
+      drawGraph();
+    });
+
+    // 다크 모드 토글
+    const themeToggleBtn = document.getElementById('themeToggleBtn');
+    themeToggleBtn.addEventListener('click', () => {
+      document.documentElement.classList.toggle('dark');
+      drawGraph();
+    });
+
+    // 그래프 캡처 및 이미지 다운로드
+    document.getElementById('captureBtn').addEventListener('click', () => {
+      // 고해상도 이미지 다운로드 링크 생성
+      const link = document.createElement('a');
+      link.download = `이차함수_그래프_y=${state.a}x2+${state.b}x+${state.c}.png`;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    });
+
+    // 윈도우 리사이즈 대응
+    window.addEventListener('resize', resizeCanvas);
+
+    // 초기 실행
+    window.addEventListener('DOMContentLoaded', () => {
+      lucide.createIcons();
+      updateCalculations();
+      resizeCanvas();
+    });
+
+    // 혹시 KaTeX 비동기 로딩 대기
+    setTimeout(() => {
+      updateCalculations();
+    }, 300);
+  </script>
+</body>
+</html>
